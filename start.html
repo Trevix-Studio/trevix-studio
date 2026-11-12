@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#07090d">
+    <meta name="description" content="Start your website project with TREVIX.">
+    <title>Start a Project — TREVIX</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        rel="icon"
+        type="image/png"
+        href="{{ url_for('serve_images', filename='Trevix.png') }}"
+    >
+    <script>
+    (() => {
+        const faviconUrl = "{{ url_for('serve_images', filename='Trevix.png') }}";
+
+        function buildFavicon() {
+            const logo = new Image();
+            logo.onload = () => {
+                const sourceCanvas = document.createElement("canvas");
+                sourceCanvas.width = logo.naturalWidth;
+                sourceCanvas.height = logo.naturalHeight;
+
+                const sourceContext = sourceCanvas.getContext("2d", {
+                    willReadFrequently: true
+                });
+
+                sourceContext.drawImage(logo, 0, 0);
+
+                let pixels;
+                try {
+                    pixels = sourceContext.getImageData(
+                        0, 0, sourceCanvas.width, sourceCanvas.height
+                    ).data;
+                } catch (error) {
+                    return;
+                }
+
+                let minX = sourceCanvas.width;
+                let minY = sourceCanvas.height;
+                let maxX = -1;
+                let maxY = -1;
+
+                for (let y = 0; y < sourceCanvas.height; y++) {
+                    for (let x = 0; x < sourceCanvas.width; x++) {
+                        const alpha = pixels[
+                            (y * sourceCanvas.width + x) * 4 + 3
+                        ];
+
+                        if (alpha > 16) {
+                            if (x < minX) minX = x;
+                            if (y < minY) minY = y;
+                            if (x > maxX) maxX = x;
+                            if (y > maxY) maxY = y;
+                        }
+                    }
+                }
+
+                if (maxX < minX || maxY < minY) return;
+
+                const size = 128;
+                const padding = 5;
+                const cropWidth = maxX - minX + 1;
+                const cropHeight = maxY - minY + 1;
+                const scale = Math.min(
+                    (size - padding * 2) / cropWidth,
+                    (size - padding * 2) / cropHeight
+                );
+
+                const drawWidth = cropWidth * scale;
+                const drawHeight = cropHeight * scale;
+
+                const faviconCanvas = document.createElement("canvas");
+                faviconCanvas.width = size;
+                faviconCanvas.height = size;
+
+                const context = faviconCanvas.getContext("2d");
+                context.clearRect(0, 0, size, size);
+                context.imageSmoothingEnabled = true;
+                context.imageSmoothingQuality = "high";
+
+                context.drawImage(
+                    sourceCanvas,
+                    minX, minY, cropWidth, cropHeight,
+                    (size - drawWidth) / 2,
+                    (size - drawHeight) / 2,
+                    drawWidth,
+                    drawHeight
+                );
+
+                const favicon = document.querySelector('link[rel~="icon"]');
+                if (favicon) {
+                    favicon.type = "image/png";
+                    favicon.href = faviconCanvas.toDataURL("image/png");
+                }
+            };
+
+            logo.onerror = () => {
+                // Keep the original Trevix.png favicon as the fallback.
+            };
+
+            logo.src = faviconUrl;
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", buildFavicon, {
+                once: true
+            });
+        } else {
+            buildFavicon();
+        }
+    })();
+    </script>
+    <style>
+        :root {
+            --bg: #07090d;
+            --surface: #0d1118;
+            --surface-2: #121925;
+            --text: #f5f7fa;
+            --muted: #9aa5b5;
+            --border: rgba(170,190,220,.14);
+            --blue: #4b8cff;
+            --gold: #e9b96e;
+            --gold-soft: rgba(233,185,110,.12);
+            --green: #54d6a0;
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(ellipse at 50% -20%, rgba(45,85,150,.16), transparent 50%),
+                var(--bg);
+            color: var(--text);
+            font-family: "Inter", sans-serif;
+            line-height: 1.6;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        .container {
+            width: min(900px, calc(100% - 40px));
+            margin-inline: auto;
+        }
+
+        /* Navigation */
+
+        .nav {
+            min-height: 76px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            background: rgba(7,9,13,.75);
+            backdrop-filter: blur(18px);
+        }
+
+        .nav-inner {
+            width: min(1100px, calc(100% - 48px));
+            margin: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 11px;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: .16em;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .logo-fallback {
+            width: 32px;
+            height: 32px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(75,140,255,.55);
+            border-radius: 9px;
+            font-weight: 800;
+        }
+
+        .back-link {
+            color: var(--muted);
+            font-size: .84rem;
+            transition: color .2s ease;
+        }
+
+        .back-link:hover {
+            color: white;
+        }
+
+        /* Page heading */
+
+        main {
+            padding: 75px 0 110px;
+        }
+
+        .eyebrow {
+            color: var(--blue);
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            max-width: 750px;
+            margin-top: 15px;
+            font-size: clamp(3rem, 8vw, 5.8rem);
+            line-height: .98;
+            letter-spacing: -.07em;
+        }
+
+        .intro {
+            max-width: 620px;
+            margin-top: 22px;
+            color: var(--muted);
+            font-size: 1.02rem;
+        }
+
+        /* Form sections */
+
+        form {
+            margin-top: 65px;
+        }
+
+        .form-section {
+            padding: 42px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .section-number {
+            color: var(--blue);
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .12em;
+        }
+
+        .form-section h2 {
+            margin: 8px 0 25px;
+            font-size: 1.8rem;
+            letter-spacing: -.045em;
+        }
+
+        .section-description {
+            margin-top: -15px;
+            margin-bottom: 25px;
+            color: var(--muted);
+            font-size: .87rem;
+        }
+
+        /* Inputs */
+
+        .field {
+            min-width: 0;
+            margin-bottom: 22px;
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        .field label,
+        .field-label {
+            display: block;
+            margin-bottom: 9px;
+            color: #e1e7f0;
+            font-size: .84rem;
+            font-weight: 600;
+        }
+
+        .optional {
+            color: var(--muted);
+            font-weight: 400;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="url"],
+        textarea,
+        select {
+            width: 100%;
+            min-height: 51px;
+            padding: 13px 15px;
+            color: white;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 11px;
+            outline: none;
+            transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #667286;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: rgba(75,140,255,.8);
+            background: var(--surface-2);
+            box-shadow: 0 0 0 3px rgba(75,140,255,.09);
+        }
+
+        textarea {
+            min-height: 135px;
+            resize: vertical;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        select option {
+            color: white;
+            background: var(--surface);
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        /* Package cards */
+
+        .packages {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0,1fr));
+            gap: 15px;
+        }
+
+        .package {
+            position: relative;
+            min-width: 0;
+        }
+
+        .package input[type="radio"] {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .package-card {
+            height: 100%;
+            min-height: 235px;
+            display: flex;
+            flex-direction: column;
+            padding: 22px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition:
+                transform .25s ease,
+                border-color .25s ease,
+                background .25s ease,
+                box-shadow .25s ease;
+        }
+
+        .package-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255,255,255,.3);
+        }
+
+        .package input:checked + .package-card {
+            border-color: var(--blue);
+            background: rgba(75,140,255,.07);
+            box-shadow: 0 0 0 1px rgba(75,140,255,.22);
+        }
+
+        .package input:focus-visible + .package-card {
+            outline: 2px solid var(--blue);
+            outline-offset: 4px;
+        }
+
+        /* Premium gold outline */
+
+        .package.premium .package-card {
+            border: 1px solid var(--gold);
+            box-shadow:
+                0 0 0 1px rgba(233,185,110,.2),
+                0 0 22px rgba(233,185,110,.09);
+        }
+
+        .package.premium .package-card:hover {
+            box-shadow:
+                0 0 0 1px rgba(233,185,110,.38),
+                0 0 32px rgba(233,185,110,.16);
+        }
+
+        .package.premium input:checked + .package-card {
+            border-color: #f0c982;
+            background: rgba(233,185,110,.09);
+            box-shadow:
+                0 0 0 1px rgba(233,185,110,.42),
+                0 0 35px rgba(233,185,110,.19);
+        }
+
+        .package-tag {
+            align-self: flex-start;
+            margin-bottom: 14px;
+            padding: 4px 9px;
+            color: var(--gold);
+            background: var(--gold-soft);
+            border: 1px solid rgba(233,185,110,.28);
+            border-radius: 999px;
+            font-size: .62rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        .package-name {
+            display: block;
+            font-size: 1.18rem;
+            font-weight: 700;
+        }
+
+        .package-price {
+            display: block;
+            margin-top: 10px;
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -.06em;
+        }
+
+        .package-price small {
+            color: var(--muted);
+            font-size: .7rem;
+            font-weight: 500;
+            letter-spacing: 0;
+        }
+
+        .package-deposit {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: .75rem;
+        }
+
+        .package-details {
+            margin-top: auto;
+            padding-top: 20px;
+            color: #c1cad8;
+            font-size: .78rem;
+        }
+
+        .package-hint {
+            margin-top: 13px;
+            color: var(--muted);
+            font-size: .78rem;
+        }
+
+        /* Checkbox */
+
+        .checkbox-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .checkbox-row input {
+            width: 17px;
+            height: 17px;
+            flex-shrink: 0;
+            margin-top: 4px;
+            accent-color: var(--blue);
+            cursor: pointer;
+        }
+
+        .checkbox-row label {
+            color: #b8c2d1;
+            font-size: .82rem;
+            cursor: pointer;
+        }
+
+        /* Summary */
+
+        .summary {
+            padding: 25px;
+            background: linear-gradient(145deg, #111925, #0b1018);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .summary-title {
+            margin-bottom: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .summary-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            padding: 13px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: .88rem;
+        }
+
+        .summary-row:last-child {
+            border-bottom: 0;
+        }
+
+        .summary-label {
+            color: var(--muted);
+        }
+
+        .summary-value {
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .summary-row.deposit-row .summary-value {
+            color: var(--green);
+        }
+
+        .payment-note {
+            margin-top: 15px;
+            color: var(--muted);
+            font-size: .76rem;
+        }
+
+        /* Submit */
+
+        .submit-button {
+            width: 100%;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 25px;
+            padding: 15px 22px;
+            color: #080b10;
+            background: #f5f7fa;
+            border: 0;
+            border-radius: 999px;
+            font-size: .9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255,255,255,.1);
+        }
+
+        .submit-button:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .secure-note {
+            margin-top: 13px;
+            color: var(--muted);
+            font-size: .73rem;
+            text-align: center;
+        }
+
+        /* Footer */
+
+        .footer {
+            padding: 25px 0;
+            border-top: 1px solid var(--border);
+            color: #718096;
+            font-size: .74rem;
+            text-align: center;
+        }
+
+        /* Responsive */
+
+        @media (max-width: 760px) {
+            main {
+                padding-top: 55px;
+            }
+
+            .packages {
+                grid-template-columns: 1fr;
+            }
+
+            .package-card {
+                min-height: 205px;
+            }
+
+            .field-grid {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .form-section {
+                padding: 32px 0;
+            }
+
+            .summary {
+                padding: 19px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .container {
+                width: calc(100% - 30px);
+            }
+
+            .nav-inner {
+                width: calc(100% - 30px);
+            }
+
+            .back-link {
+                font-size: .75rem;
+            }
+
+            h1 {
+                font-size: 3.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="nav">
+    <div class="nav-inner">
+
+        <a href="/" class="logo" aria-label="TREVIX homepage">
+    <img
+        src="{{ url_for('serve_images', filename='Trevix.png') }}"
+        alt="TREVIX"
+        onerror="this.hidden=true; this.nextElementSibling.classList.add('show');"
+    >
+    <span class="logo-fallback">T</span>
+    <span>TREVIX</span>
+</a>
+
+        <a href="/" class="back-link">← Back to website</a>
+
+    </div>
+</header>
+
+<main>
+    <div class="container">
+
+        <span class="eyebrow">Start a project / 01</span>
+
+        <h1>Let's build your website.</h1>
+
+        <p class="intro">
+            Tell us about your business, your goals, and what you want your
+            website to accomplish. We'll review your project details before
+            moving forward.
+        </p>
+
+        <form
+            method="POST"
+            action="{{ url_for('create_project') }}"
+            id="projectForm"
+        >
+
+            <!-- 01: PACKAGE -->
+
+            <section class="form-section">
+                <span class="section-number">01 / PACKAGE</span>
+                <h2>Choose your package</h2>
+
+                <p class="section-description">
+                    Select the package that best fits your project.
+                    All prices are in Canadian dollars.
+                </p>
+
+                <div class="packages">
+
+                    <div class="package">
+                        <input
+                            type="radio"
+                            name="package"
+                            id="basic"
+                            value="basic"
+                            required
+                        >
+
+                        <label class="package-card" for="basic">
+                            <span class="package-name">Basic</span>
+                            <span class="package-price">$199 <small>CAD</small></span>
+                            <span class="package-deposit">$99.50 deposit</span>
+
+                            <span class="package-details">
+                                Up to 3 pages
+                                <br>
+                                1 revision
+                            </span>
+
+                            <span class="package-hint">
+                                A simple, professional starting point.
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="package">
+                        <input
+                            type="radio"
+                            name="package"
+                            id="business"
+                            value="business"
+                        >
+
+                        <label class="package-card" for="business">
+                            <span class="package-name">Business</span>
+                            <span class="package-price">$299 <small>CAD</small></span>
+                            <span class="package-deposit">$149.50 deposit</span>
+
+                            <span class="package-details">
+                                Up to 5 pages
+                                <br>
+                                2 revisions
+                            </span>
+
+                            <span class="package-hint">
+                                More room for your business to grow.
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="package premium">
+                        <input
+                            type="radio"
+                            name="package"
+                            id="pro"
+                            value="pro"
+                        >
+
+                        <label class="package-card" for="pro">
+                            <span class="package-tag">Premium</span>
+                            <span class="package-name">Premium</span>
+                            <span class="package-price">$499 <small>CAD</small></span>
+                            <span class="package-deposit">$249.50 deposit</span>
+
+                            <span class="package-details">
+                                Up to 8 pages
+                                <br>
+                                3 revisions
+                            </span>
+
+                            <span class="package-hint">
+                                A more complete website experience.
+                            </span>
+                        </label>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- 02: CUSTOMER INFORMATION -->
+
+            <section class="form-section">
+                <span class="section-number">02 / YOUR INFORMATION</span>
+                <h2>Who are we working with?</h2>
+
+                <div class="field-grid">
+
+                    <div class="field">
+                        <label for="name">Your name</label>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            autocomplete="name"
+                            placeholder="Your full name"
+                            required
+                        >
+                    </div>
+
+                    <div class="field">
+                        <label for="email">Email address</label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            autocomplete="email"
+                            placeholder="you@example.com"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+                <div class="field">
+                    <label for="business_name">Business or project name</label>
+                    <input
+                        type="text"
+                        id="business_name"
+                        name="business_name"
+                        placeholder="Your business name"
+                        required
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="current_site">
+                        Current website <span class="optional">(optional)</span>
+                    </label>
+                    <input
+                        type="url"
+                        id="current_site"
+                        name="current_site"
+                        placeholder="https://example.com"
+                    >
+                </div>
+            </section>
+
+            <!-- 03: BUSINESS -->
+
+            <section class="form-section">
+                <span class="section-number">03 / YOUR BUSINESS</span>
+                <h2>Tell us what you do.</h2>
+
+                <div class="field">
+                    <label for="description">Describe your business</label>
+                    <textarea
+                        id="description"
+                        name="description"
+                        placeholder="What does your business do? What products or services do you offer? Who are your customers?"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="field">
+                    <label for="goal">What should your website accomplish?</label>
+                    <textarea
+                        id="goal"
+                        name="goal"
+                        placeholder="For example: attract customers, receive quote requests, showcase your work, sell products..."
+                        required
+                    ></textarea>
+                </div>
+            </section>
+
+            <!-- 04: WEBSITE REQUIREMENTS -->
+
+            <section class="form-section">
+                <span class="section-number">04 / WEBSITE REQUIREMENTS</span>
+                <h2>What should we build?</h2>
+
+                <div class="field">
+                    <label for="pages">What pages do you need?</label>
+                    <input
+                        type="text"
+                        id="pages"
+                        name="pages"
+                        placeholder="Home, About, Services, Contact..."
+                        required
+                    >
+                </div>
+
+                <div class="field">
+                    <label for="features">
+                        Required features <span class="optional">(optional)</span>
+                    </label>
+                    <textarea
+                        id="features"
+                        name="features"
+                        placeholder="Contact forms, image galleries, booking forms, maps, menus, customer testimonials..."
+                    ></textarea>
+                </div>
+
+                <div class="field-grid">
+
+                    <div class="field">
+                        <label for="style">Preferred design style</label>
+                        <select id="style" name="style" required>
+                            <option value="">Choose a style</option>
+                            <option value="modern">Modern</option>
+                            <option value="minimal">Minimal</option>
+                            <option value="professional">Professional</option>
+                            <option value="bold">Bold</option>
+                            <option value="friendly">Friendly</option>
+                            <option value="luxury">Luxury</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="colors">
+                            Brand colors <span class="optional">(optional)</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="colors"
+                            name="colors"
+                            placeholder="Black, white, blue..."
+                        >
+                    </div>
+
+                </div>
+
+                <div class="field">
+                    <label for="references">
+                        Reference websites <span class="optional">(optional)</span>
+                    </label>
+                    <textarea
+                        id="references"
+                        name="references"
+                        placeholder="Paste links to websites you like and explain what you like about them."
+                    ></textarea>
+                </div>
+            </section>
+
+            <!-- 05: ADDITIONAL INFORMATION -->
+
+            <section class="form-section">
+                <span class="section-number">05 / ADDITIONAL DETAILS</span>
+                <h2>Anything else?</h2>
+
+                <div class="field">
+                    <label for="instructions">
+                        Additional instructions <span class="optional">(optional)</span>
+                    </label>
+                    <textarea
+                        id="instructions"
+                        name="instructions"
+                        placeholder="Share any other requirements, ideas, or details we should know."
+                    ></textarea>
+                </div>
+            </section>
+
+            <!-- 06: SUMMARY AND PAYMENT -->
+
+            <section class="form-section">
+                <span class="section-number">06 / PROJECT SUMMARY</span>
+                <h2>Review your selection.</h2>
+
+                <div class="summary">
+
+                    <div class="summary-title">Your project estimate</div>
+
+                    <div class="summary-row">
+                        <span class="summary-label">Selected package</span>
+                        <strong class="summary-value" id="summaryPackage">
+                            Select a package
+                        </strong>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="summary-label">Total project price</span>
+                        <strong class="summary-value" id="summaryPrice">—</strong>
+                    </div>
+
+                    <div class="summary-row deposit-row">
+                        <span class="summary-label">Deposit due today</span>
+                        <strong class="summary-value" id="summaryDeposit">—</strong>
+                    </div>
+
+                    <p class="payment-note">
+                        The remaining balance is handled separately according
+                        to the agreed project terms.
+                    </p>
+
+                </div>
+
+                <div class="checkbox-row">
+                    <input
+                        type="checkbox"
+                        id="terms"
+                        name="terms"
+                        value="accepted"
+                        required
+                    >
+
+                    <label for="terms">
+                        I confirm that the information I provided is accurate
+                        and agree to the project terms.
+                    </label>
+                </div>
+
+                <button type="submit" class="submit-button" id="submitButton">
+                    Submit project details →
+                </button>
+
+                <p class="secure-note">
+                    Your project details will be submitted for review.
+                    Payment processing is handled separately through Stripe.
+                </p>
+
+            </section>
+
+        </form>
+    </div>
+</main>
+
+<footer class="footer">
+    <div class="container">
+        © <span id="year"></span> TREVIX. All rights reserved.
+    </div>
+</footer>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const packages = {
+        basic: {
+            name: "Basic",
+            price: 199,
+            deposit: 99.50
+        },
+
+        business: {
+            name: "Business",
+            price: 299,
+            deposit: 149.50
+        },
+
+        pro: {
+            name: "Premium",
+            price: 499,
+            deposit: 249.50
+        }
+    };
+
+    const form = document.getElementById("projectForm");
+
+    const packageInputs = document.querySelectorAll(
+        'input[name="package"]'
+    );
+
+    const summaryPackage = document.getElementById("summaryPackage");
+    const summaryPrice = document.getElementById("summaryPrice");
+    const summaryDeposit = document.getElementById("summaryDeposit");
+
+    function formatMoney(value) {
+        return "$" + value.toFixed(2) + " CAD";
+    }
+
+    function updateSummary(packageKey) {
+        const selected = packages[packageKey];
+
+        if (!selected) {
+            summaryPackage.textContent = "Select a package";
+            summaryPrice.textContent = "—";
+            summaryDeposit.textContent = "—";
+            return;
+        }
+
+        summaryPackage.textContent = selected.name;
+        summaryPrice.textContent = formatMoney(selected.price);
+        summaryDeposit.textContent = formatMoney(selected.deposit);
+    }
+
+    // Update the summary when a package is selected.
+    packageInputs.forEach(function (input) {
+        input.addEventListener("change", function () {
+            if (input.checked) {
+                updateSummary(input.value);
+            }
+        });
+    });
+
+    // Automatically select the package passed from the homepage.
+    const requestedPackage = new URLSearchParams(
+        window.location.search
+    ).get("package");
+
+    if (
+        requestedPackage &&
+        Object.prototype.hasOwnProperty.call(
+            packages,
+            requestedPackage.toLowerCase()
+        )
+    ) {
+        const matchingInput = document.querySelector(
+            'input[name="package"][value="' +
+            requestedPackage.toLowerCase() +
+            '"]'
+        );
+
+        if (matchingInput) {
+            matchingInput.checked = true;
+        }
+    }
+
+    // Display the initial package summary.
+    const initiallySelected = document.querySelector(
+        'input[name="package"]:checked'
+    );
+
+    updateSummary(
+        initiallySelected ? initiallySelected.value : null
+    );
+
+    // Validate the selected package before submitting.
+    form.addEventListener("submit", function (event) {
+        const selected = document.querySelector(
+            'input[name="package"]:checked'
+        );
+
+        if (
+            !selected ||
+            !Object.prototype.hasOwnProperty.call(
+                packages,
+                selected.value
+            )
+        ) {
+            event.preventDefault();
+            alert("Please select a valid website package.");
+            return;
+        }
+    });
+
+    // Footer year.
+    document.getElementById("year").textContent =
+        new Date().getFullYear();
+});
+</script>
+
+</body>
+</html>
